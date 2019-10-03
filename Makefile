@@ -1,7 +1,6 @@
 $(eval TENSORFLOW_VERSION := "$(shell grep ARG Dockerfile | grep TENSORFLOW_VERSION | cut -d '=' -f 2)")
 $(eval CUDA_CAPS := "$(shell grep TF_CUDA_COMPUTE_CAPABILITIES .tf_configure.bazelrc-$(TENSORFLOW_VERSION) | cut -d '=' -f 2 | tr -d '\"')")
 $(eval DOCKER_TAG := "$(shell echo cuda-caps-$(CUDA_CAPS))")
-$(eval CUDA_VERSION := "$(shell grep ARG Dockerfile | grep CUDA_VERSION | cut -d '=' -f 2)")
 $(eval IMAGE_NAME := "$(shell echo cuda-$(CUDA_VERSION)-tensorflow-$(TENSORFLOW_VERSION))")
 
 
