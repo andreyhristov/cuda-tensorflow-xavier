@@ -1,0 +1,10 @@
+--- tensorflow/tf_version_script.lds    2018-11-02 01:35:10.000000000 +0000
++++ tensorflow/tf_version_script.lds    2019-04-09 17:36:13.770608728 +0000
+@@ -5,6 +5,7 @@
+     *TF_*;
+     *TFE_*;
+     *nsync_*;
++    *stream_executor*;
+     *pywrap_xla*;
+   local:
+     *;

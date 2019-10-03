@@ -1,0 +1,40 @@
+--- tensorflow/BUILD       2018-11-02 01:35:10.000000000 +0000
++++ tensorflow/BUILD       2019-04-07 16:35:43.533217685 +0000
+@@ -471,6 +471,9 @@
+         "//tensorflow/cc:scope",
+         "//tensorflow/cc/profiler",
+         "//tensorflow/core:tensorflow",
++        "//tensorflow/contrib/tensorrt:trt_conversion",
++        "//tensorflow/contrib/tensorrt:trt_engine_op_kernel",
++        "//tensorflow/contrib/tensorrt:trt_resources",
+     ] + if_ngraph(["@ngraph_tf//:ngraph_tf"]),
+ )
+ 
+--- tensorflow/core/platform/default/build_config.bzl~  2018-11-02 01:35:10.000000000 +0000
++++ tensorflow/core/platform/default/build_config.bzl   2019-10-02 07:08:47.120000000 +0000
+@@ -637,7 +637,6 @@
+         "//tensorflow:linux_s390x": [],
+         "//conditions:default": [
+             "//tensorflow/core/platform/cloud:gcs_file_system",
+-            "//tensorflow/core/platform/s3:s3_file_system",
+             "//tensorflow/core/platform/hadoop:hadoop_file_system",
+         ],
+     })
+--- tensorflow/contrib/lite/kernels/internal/BUILD~     2019-10-02 20:40:18.000000000 +0000
++++ tensorflow/contrib/lite/kernels/internal/BUILD      2019-10-02 20:40:53.240000000 +0000
+@@ -21,15 +21,12 @@
+ NEON_FLAGS_IF_APPLICABLE = select({
+     ":arm": [
+         "-O3",
+-        "-mfpu=neon",
+     ],
+     ":armeabi-v7a": [
+         "-O3",
+-        "-mfpu=neon",
+     ],
+     ":armv7a": [
+         "-O3",
+-        "-mfpu=neon",
+     ],
+     "//conditions:default": [
+         "-O3",
