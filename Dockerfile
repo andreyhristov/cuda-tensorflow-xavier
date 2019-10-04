@@ -27,13 +27,8 @@ RUN \
 RUN mkdir /work
 WORKDIR /work
 
-ARG TENSORFLOW_VERSION=1.12.0
-ARG BAZEL_VERSION=0.15.0
 ARG JETPACK_BASE_URL=https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/JETPACK_422_b21
 ARG XAVIER_PRODUCT_CODE=P2888
-
-ADD bazel-$BAZEL_VERSION-* /work/
-RUN cat bazel-$BAZEL_VERSION-part-aa bazel-$BAZEL_VERSION-part-ab > /usr/bin/bazel
 
 RUN wget -qO - https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub | sudo apt-key add 
 
@@ -88,12 +83,34 @@ RUN wget $JETPACK_BASE_URL/cuda-repo-l4t-10-0-local-10.0.326_1.0-1_arm64.deb && 
      && dpkg -i libnvinfer*.deb \
      && rm *.deb
 
+# The following addition to LD path is needed or the bazel build will break with errors due to undefined references
+# See https://github.com/tensorflow/tensorflow/issues/13243
+# If you don't want to do this, thenn just build with `bazel build --config=opt --config=monolithic //tensorflow:libtensorflow_cc.so`
+# In case of monolithic build there is only one build artefact - libtensorflow_cc.so and there is no libtensorflow_framework.so
+RUN echo "/usr/local/cuda/targets/x86_64-linux/lib/stubs" >> /etc/ld.so.conf.d/cuda-10-0.conf && ldconfig
+
+RUN pip3 install setuptools
+RUN pip3 install wheel
+RUN pip3 install numpy
+RUN pip3 install pandas
+RUN pip3 install keras_applications==1.0.8 --no-deps
+RUN pip3 install keras_preprocessing==1.0.9 --no-deps
+RUN pip3 install h5py==2.8.0
+RUN pip3 install virtualenv
+
+ADD tegra /usr/lib/aarch64-linux-gnu/
+
+ENV TMP /tmp
+
+ARG BAZEL_VERSION=0.15.0
+ADD bazel-$BAZEL_VERSION-* /work/
+RUN cat bazel-$BAZEL_VERSION-part-aa bazel-$BAZEL_VERSION-part-ab > /usr/bin/bazel && chmod 555 /usr/bin/bazel
+
+ARG TENSORFLOW_VERSION=1.12.0
 RUN wget https://github.com/tensorflow/tensorflow/archive/v$TENSORFLOW_VERSION.tar.gz -O tensorflow.tar.gz \
         && tar zxvf tensorflow.tar.gz \
         && rm tensorflow.tar.gz \
         && mv tensorflow-$TENSORFLOW_VERSION tensorflow
-
-ENV TMP /tmp
 
 
 COPY .bazelrc-$TENSORFLOW_VERSION /work/tensorflow/.bazelrc
@@ -110,24 +127,8 @@ RUN patch -p0 < BUILD.patch
 COPY tf_version_script.lds.patch /work/tensorflow
 RUN patch -p0 tf_version_script.lds.patch
 
-# The following addition to LD path is needed or the bazel build will break with errors due to undefined references
-# See https://github.com/tensorflow/tensorflow/issues/13243
-# If you don't want to do this, thenn just build with `bazel build --config=opt --config=monolithic //tensorflow:libtensorflow_cc.so`
-# In case of monolithic build there is only one build artefact - libtensorflow_cc.so and there is no libtensorflow_framework.so
-RUN echo "/usr/local/cuda/targets/x86_64-linux/lib/stubs" >> /etc/ld.so.conf.d/cuda-10-0.conf && ldconfig
-
-RUN pip3 install setuptools
-RUN pip3 install wheel
-RUN pip3 install numpy
-RUN pip3 install pandas
-RUN pip3 install keras_applications==1.0.8 --no-deps
-RUN pip3 install keras_preprocessing==1.0.9 --no-deps
-RUN pip3 install h5py==2.8.0
-RUN pip3 install virtualenv
-
 
 ARG BUILD_TYPE="--config=opt --config=monolithic"
-RUN chmod 555 /usr/bin/bazel
 RUN bazel build $BUILD_TYPE //tensorflow/stream_executor/...
 RUN bazel build $BUILD_TYPE //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so 
 
@@ -139,7 +140,6 @@ RUN bazel build $BUILD_TYPE \
 		//tensorflow/contrib/tensorrt:trt_engine_op_loader \
 		//tensorflow/contrib/tensorrt:python/ops/_trt_engine_op.so
 
-ADD tegra /usr/lib/aarch64-linux-gnu/
 
 RUN bazel build $BUILD_TYPE //tensorflow/tools/pip_package:build_pip_package
 
