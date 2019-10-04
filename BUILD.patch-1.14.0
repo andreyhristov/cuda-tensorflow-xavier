@@ -1,0 +1,111 @@
+--- tensorflow/BUILD       2019-02-25 20:37:04.000000000 +0000
++++ tensorflow/BUILD       2019-04-04 16:45:53.441354395 +0000
+@@ -511,6 +511,9 @@
+         "//tensorflow/cc:scope",
+         "//tensorflow/cc/profiler",
+         "//tensorflow/core:tensorflow",
++        "//tensorflow/compiler/tf2tensorrt:trt_conversion",
++        "//tensorflow/compiler/tf2tensorrt:trt_op_kernels",
++        "//tensorflow/compiler/tf2tensorrt:trt_engine_op_op_lib",
+     ] + if_ngraph(["@ngraph_tf//:ngraph_tf"]),
+ )
+ 
+--- third_party/toolchains/cpus/arm/BUILD~	2019-06-19 00:48:23.000000000 +0200
++++ third_party/toolchains/cpus/arm/BUILD	2019-09-30 14:28:29.124554000 +0200
+@@ -10,6 +10,7 @@
+         "armeabi|compiler": ":cc-compiler-armeabi",
+         "local|compiler": ":cc-compiler-local",
+         "armeabi": ":cc-compiler-armeabi",
++        "aarch64": ":cc-compiler-local",
+         "k8": ":cc-compiler-local",
+         "piii": ":cc-compiler-local",
+         "arm": ":cc-compiler-local",
+--- third_party/gpus/crosstool/BUILD.tpl~	2019-06-19 00:48:23.000000000 +0200
++++ third_party/gpus/crosstool/BUILD.tpl	2019-09-30 14:28:59.516554000 +0200
+@@ -29,6 +29,7 @@
+         "x64_windows|msvc-cl": ":cc-compiler-windows",
+         "x64_windows": ":cc-compiler-windows",
+         "arm": ":cc-compiler-local",
++        "aarch64": ":cc-compiler-local",
+         "k8": ":cc-compiler-local",
+         "piii": ":cc-compiler-local",
+         "ppc": ":cc-compiler-local",
+commit 851b3f5a467bdd1f41c32a6b346940980530898d
+Author: A. Unique TensorFlower <gardener@tensorflow.org>
+Date:   Wed Jun 26 07:11:29 2019 -0700
+
+    Disable dot-product depthwise conv when not compiling for Android with Clang.
+    
+    PiperOrigin-RevId: 255181633
+
+diff --git a/tensorflow/lite/kernels/internal/depthwiseconv_quantized_test.cc b/tensorflow/lite/kernels/internal/depthwiseconv_quantized_test.cc
+index 8baf2c7253..fd5b89eaf7 100644
+--- tensorflow/lite/kernels/internal/depthwiseconv_quantized_test.cc
++++ tensorflow/lite/kernels/internal/depthwiseconv_quantized_test.cc
+@@ -170,7 +170,8 @@ inline void DispatchDepthwiseConv(
+       // This is compiled-in even if dot-product instructions are unavailable.
+       // However, tests should skip dot-product testing in that case and not
+       // call this code.
+-#if defined(__aarch64__) && !defined(GOOGLE_L4T)
++#if defined(__aarch64__) && !defined(GOOGLE_L4T) && defined(__ANDROID__) && \
++    defined(__clang__)
+       DotProduct3x3KernelType kernel_type =
+           optimized_ops::depthwise_conv::CategorizeDotProductKernel(
+               input_shape, filter_shape, params);
+@@ -683,7 +684,8 @@ void TestOneDepthwiseConv3x3Filter(
+ }
+ 
+ void TestOneNeonDot3x3(const TestParam& test_param) {
+-#if defined(__aarch64__) && !defined(GOOGLE_L4T)
++#if defined(__aarch64__) && !defined(GOOGLE_L4T) && defined(__ANDROID__) && \
++    defined(__clang__)
+   CpuBackendContext backend_context;
+   ruy::Context* ruy_context = backend_context.ruy_context();
+   const auto ruy_paths = ruy_context != nullptr
+@@ -854,7 +856,8 @@ INSTANTIATE_TEST_SUITE_P(
+     TestParam::TestNameSuffix);
+ #endif
+ 
+-#if defined(__aarch64__) && !defined(GOOGLE_L4T)
++#if defined(__aarch64__) && !defined(GOOGLE_L4T) && defined(__ANDROID__) && \
++    defined(__clang__)
+ INSTANTIATE_TEST_SUITE_P(
+     NeonAsm, DepthwiseConvTest,
+     testing::Combine(
+diff --git a/tensorflow/lite/kernels/internal/optimized/depthwiseconv_uint8.h b/tensorflow/lite/kernels/internal/optimized/depthwiseconv_uint8.h
+index 23940e3c33..8b57c3ed65 100644
+--- tensorflow/lite/kernels/internal/optimized/depthwiseconv_uint8.h
++++ tensorflow/lite/kernels/internal/optimized/depthwiseconv_uint8.h
+@@ -2006,7 +2006,8 @@ inline void DepthwiseConvWithRounding(
+ 
+ // Enable for arm64 except for the Nvidia Linux 4 Tegra (L4T) running on
+ // Jetson TX-2. This compiler does not support the offsetof() macro.
+-#if defined(__aarch64__) && !defined(GOOGLE_L4T)
++#if defined(__aarch64__) && !defined(GOOGLE_L4T) && defined(__ANDROID__) && \
++    defined(__clang__)
+   // Dispatch to dot-product 3x3 kernels when supported.
+   if (cpu_flags.neon_dotprod) {
+     using optimized_ops::depthwise_conv::DotProduct3x3KernelType;
+@@ -2025,6 +2026,8 @@ inline void DepthwiseConvWithRounding(
+     }
+   }
+ 
++#elif defined(__aarch64__) && !defined(GOOGLE_L4T)
++
+   // Dispatch to non-dot-product 3x3 kernels when supported.
+ 
+   const int stride_width = params.stride_width;
+diff --git a/tensorflow/lite/kernels/internal/optimized/depthwiseconv_uint8_3x3_filter.h b/tensorflow/lite/kernels/internal/optimized/depthwiseconv_uint8_3x3_filter.h
+index cf2bcb2279..9f827e988a 100644
+--- tensorflow/lite/kernels/internal/optimized/depthwiseconv_uint8_3x3_filter.h
++++ tensorflow/lite/kernels/internal/optimized/depthwiseconv_uint8_3x3_filter.h
+@@ -5786,7 +5786,8 @@ struct WorkspacePrefetchWrite<
+ 
+ #endif  // __aarch64__
+ 
+-#if defined(__aarch64__) && !defined(GOOGLE_L4T)
++#if defined(__aarch64__) && !defined(GOOGLE_L4T) && defined(__ANDROID__) && \
++    defined(__clang__)
+ // Dot product ops hard-coded
+ 
+ template <>
