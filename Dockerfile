@@ -106,7 +106,7 @@ ADD bazel-$BAZEL_VERSION /usr/bin/bazel
 
 RUN apt update && apt install -y git
 
-ARG TENSORFLOW_VERSION=1.15.0-rc2
+ARG TENSORFLOW_VERSION=1.15.0
 RUN wget https://github.com/tensorflow/tensorflow/archive/v$TENSORFLOW_VERSION.tar.gz -O tensorflow.tar.gz \
         && tar zxvf tensorflow.tar.gz \
         && rm tensorflow.tar.gz \
