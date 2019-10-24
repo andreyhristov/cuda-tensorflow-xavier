@@ -3,7 +3,6 @@ FROM nvcr.io/nvidia/l4t-base:r32.2.1
 RUN sed -i "s/archive.ubuntu.com/bg.archive.ubuntu.com/" /etc/apt/sources.list
 RUN \   
         apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-                libopencv-dev \
                 libtinyxml2-6 \
                 libtinyxml2-dev \
                 libgstreamer1.0-0 \
@@ -39,6 +38,14 @@ RUN wget $JETPACK_BASE_URL/cuda-repo-l4t-10-0-local-10.0.326_1.0-1_arm64.deb && 
     wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvinfer-dev_5.1.6-1+cuda10.0_arm64.deb && \
     wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libcudnn7_7.5.0.56-1+cuda10.0_arm64.deb && \
     wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libcudnn7-dev_7.5.0.56-1+cuda10.0_arm64.deb && \
+    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/python3-libnvinfer_5.1.6-1+cuda10.0_arm64.deb && \
+    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/python3-libnvinfer-dev_5.1.6-1+cuda10.0_arm64.deb && \
+    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/python3-libnvinfer_5.1.6-1+cuda10.0_arm64.deb && \
+    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/python3-libnvinfer-dev_5.1.6-1+cuda10.0_arm64.deb && \
+    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvinfer-samples_5.1.6-1+cuda10.0_all.deb && \
+    wget $JETPACK_BASE_URL/libopencv-dev_3.3.1-2-g31ccdfe11_arm64.deb && \
+    wget $JETPACK_BASE_URL/libopencv_3.3.1-2-g31ccdfe11_arm64.deb && \
+    wget $JETPACK_BASE_URL/libopencv-python_3.3.1-2-g31ccdfe11_arm64.deb && \
     dpkg -i libcudnn7*.deb && \
     dpkg -i cuda-repo-l4t-10-0-local-10.0.326_1.0-1_arm64.deb && \
     apt update && \
@@ -80,8 +87,15 @@ RUN wget $JETPACK_BASE_URL/cuda-repo-l4t-10-0-local-10.0.326_1.0-1_arm64.deb && 
 	cuda-toolkit-10-0 \
 	cuda-tools-10-0 \
      && apt-get clean \
-     && rm -rf /var/lib/apt/lists/* \
-     && dpkg -i libnvinfer*.deb \
+     && rm -rf /var/lib/apt/lists/*
+
+RUN  apt update && \
+    apt install -y libtbb-dev libtbb2 libgtk2.0-0 && apt-get clean \
+     && rm -rf /var/lib/apt/lists/*
+
+RUN dpkg -i libnvinfer*.deb \
+     && dpkg -i tensorrt*.deb \
+     && dpkg -i python3-*.deb libopencv*.deb \
      && rm *.deb
 
 # The following addition to LD path is needed or the bazel build will break with errors due to undefined references
@@ -99,6 +113,7 @@ RUN pip3 install keras_preprocessing==1.0.9 --no-deps
 RUN pip3 install h5py==2.8.0
 RUN pip3 install virtualenv
 
+RUN pip3 install wrapt grpcio termcolor absl-py gast
 ENV TMP /tmp
 
 ARG BAZEL_VERSION=0.24.1
