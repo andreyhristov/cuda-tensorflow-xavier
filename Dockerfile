@@ -121,7 +121,7 @@ ADD bazel-$BAZEL_VERSION /usr/bin/bazel
 
 RUN apt update && apt install -y git
 
-ARG TENSORFLOW_VERSION=2.0.0
+ARG TENSORFLOW_VERSION=2.1.0-rc1
 RUN wget https://github.com/tensorflow/tensorflow/archive/v$TENSORFLOW_VERSION.tar.gz -O tensorflow.tar.gz \
         && tar zxvf tensorflow.tar.gz \
         && rm tensorflow.tar.gz \
@@ -139,9 +139,9 @@ ARG BUILD_TYPE=--config=opt
 RUN bazel build $BUILD_TYPE //tensorflow/stream_executor/...
 RUN bazel build $BUILD_TYPE //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so 
 
-RUN bazel build $BUILD_TYPE  \
-                //tensorflow/contrib/rnn:all_ops \
-                //tensorflow/contrib/rnn:all_kernels
+#RUN bazel build $BUILD_TYPE  \
+#                //tensorflow/contrib/rnn:all_ops \
+#                //tensorflow/contrib/rnn:all_kernels
 
 RUN bazel build $BUILD_TYPE  \
 		//tensorflow/compiler/tf2tensorrt:trt_op_kernels \
