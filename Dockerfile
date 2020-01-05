@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/l4t-base:r32.2.1
+FROM nvcr.io/nvidia/l4t-base:r32.3.1
 
 RUN sed -i "s/archive.ubuntu.com/bg.archive.ubuntu.com/" /etc/apt/sources.list
 RUN \   
@@ -26,66 +26,115 @@ RUN \
 RUN mkdir /work
 WORKDIR /work
 
-ARG JETPACK_BASE_URL=https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/JETPACK_422_b21
-ARG XAVIER_PRODUCT_CODE=P2888
+#ARG JETPACK_BASE_URL=https://developer.nvidia.com/assets/embedded/secure/tools/files/jetpack-sdks/jetpack-4.3/JETPACK_43_b132
+#ARG XAVIER_PRODUCT_CODE=P2888
 
 
 RUN wget -qO - https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub | sudo apt-key add 
 
-RUN wget $JETPACK_BASE_URL/cuda-repo-l4t-10-0-local-10.0.326_1.0-1_arm64.deb && \
-    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/tensorrt_5.1.6.1-1+cuda10.0_arm64.deb && \
-    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvinfer5_5.1.6-1+cuda10.0_arm64.deb && \
-    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvinfer-dev_5.1.6-1+cuda10.0_arm64.deb && \
-    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libcudnn7_7.5.0.56-1+cuda10.0_arm64.deb && \
-    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libcudnn7-dev_7.5.0.56-1+cuda10.0_arm64.deb && \
-    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/python3-libnvinfer_5.1.6-1+cuda10.0_arm64.deb && \
-    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/python3-libnvinfer-dev_5.1.6-1+cuda10.0_arm64.deb && \
-    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/python3-libnvinfer_5.1.6-1+cuda10.0_arm64.deb && \
-    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/python3-libnvinfer-dev_5.1.6-1+cuda10.0_arm64.deb && \
-    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvinfer-samples_5.1.6-1+cuda10.0_all.deb && \
-    wget $JETPACK_BASE_URL/libopencv-dev_3.3.1-2-g31ccdfe11_arm64.deb && \
-    wget $JETPACK_BASE_URL/libopencv_3.3.1-2-g31ccdfe11_arm64.deb && \
-    wget $JETPACK_BASE_URL/libopencv-python_3.3.1-2-g31ccdfe11_arm64.deb && \
+#RUN wget $JETPACK_BASE_URL/cuda-repo-l4t-10-0-local-10.0.326_1.0-1_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/deepstream-4.0_4.0.2-1_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/tensorrt_6.0.1.10-1+cuda10.0_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvinfer6_6.0.1-1+cuda10.0_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvinfer-dev_6.0.1-1+cuda10.0_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvinfer-bin_6.0.1-1+cuda10.0_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvinfer-plugin6_6.0.1-1+cuda10.0_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvinfer-plugin-dev_6.0.1-1+cuda10.0_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvparsers6_6.0.1-1+cuda10.0_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvparsers-dev_6.0.1-1+cuda10.0_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libcudnn7_7.6.3.28-1+cuda10.0_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libcudnn7-dev_7.6.3.28-1+cuda10.0_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/python3-libnvinfer_6.0.1-1+cuda10.0_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/python3-libnvinfer-dev_6.0.1-1+cuda10.0_arm64.deb && \
+#    wget $JETPACK_BASE_URL/$XAVIER_PRODUCT_CODE/libnvinfer-samples_5.1.6-1+cuda10.0_all.deb && \
+#    wget $JETPACK_BASE_URL/OpenCV-4.1.1-2-gd5a58aa75-aarch64-dev.deb && \
+#    wget $JETPACK_BASE_URL/OpenCV-4.1.1-2-gd5a58aa75-aarch64-libs.deb && \
+#    wget $JETPACK_BASE_URL/OpenCV-4.1.1-2-gd5a58aa75-aarch64-licenses.deb && \
+#    wget $JETPACK_BASE_URL/OpenCV-4.1.1-2-gd5a58aa75-aarch64-python.deb && \
+#    dpkg -i libcudnn7*.deb && \
+#    dpkg -i cuda-repo-l4t-10-0-local-10.0.326_1.0-1_arm64.deb && \
+#    apt update && \
+#    apt install -y cuda-command-line-tools-10-0 \
+#	cuda-compiler-10-0 \
+#	cuda-core-10-0 \
+#	cuda-cublas-10-0 \
+#	cuda-cublas-dev-10-0 \
+#	cuda-cudart-10-0 \
+#	cuda-cudart-dev-10-0 \
+#	cuda-cufft-10-0 \
+#	cuda-cufft-dev-10-0 \
+#	cuda-cuobjdump-10-0 \
+#	cuda-cupti-10-0 \
+#	cuda-curand-10-0 \
+#	cuda-curand-dev-10-0 \
+#	cuda-cusolver-10-0 \
+#	cuda-cusolver-dev-10-0 \
+#	cuda-cusparse-10-0 \
+#	cuda-cusparse-dev-10-0 \
+#	cuda-driver-dev-10-0 \
+#	cuda-gpu-library-advisor-10-0 \
+#	cuda-libraries-10-0 \
+#	cuda-libraries-dev-10-0 \
+#	cuda-license-10-0 \
+#	cuda-memcheck-10-0 \
+#	cuda-minimal-build-10-0 \
+#	cuda-misc-headers-10-0 \
+#	cuda-npp-10-0 \
+#	cuda-npp-dev-10-0 \
+#	cuda-nvgraph-10-0 \
+#	cuda-nvgraph-dev-10-0 \
+#	cuda-nvml-dev-10-0 \
+#	cuda-nvprof-10-0 \
+#	cuda-nvprune-10-0 \
+#	cuda-nvrtc-10-0 \
+#	cuda-nvrtc-dev-10-0 \
+#	cuda-nvtx-10-0 \
+#	cuda-toolkit-10-0 \
+#	cuda-tools-10-0 \
+#     && apt-get clean \
+#     && rm -rf /var/lib/apt/lists/*
+ADD jetpack4.3/*.deb ./
+RUN \
     dpkg -i libcudnn7*.deb && \
     dpkg -i cuda-repo-l4t-10-0-local-10.0.326_1.0-1_arm64.deb && \
     apt update && \
     apt install -y cuda-command-line-tools-10-0 \
-	cuda-compiler-10-0 \
-	cuda-core-10-0 \
-	cuda-cublas-10-0 \
-	cuda-cublas-dev-10-0 \
-	cuda-cudart-10-0 \
-	cuda-cudart-dev-10-0 \
-	cuda-cufft-10-0 \
-	cuda-cufft-dev-10-0 \
-	cuda-cuobjdump-10-0 \
-	cuda-cupti-10-0 \
-	cuda-curand-10-0 \
-	cuda-curand-dev-10-0 \
-	cuda-cusolver-10-0 \
-	cuda-cusolver-dev-10-0 \
-	cuda-cusparse-10-0 \
-	cuda-cusparse-dev-10-0 \
-	cuda-driver-dev-10-0 \
-	cuda-gpu-library-advisor-10-0 \
-	cuda-libraries-10-0 \
-	cuda-libraries-dev-10-0 \
-	cuda-license-10-0 \
-	cuda-memcheck-10-0 \
-	cuda-minimal-build-10-0 \
-	cuda-misc-headers-10-0 \
-	cuda-npp-10-0 \
-	cuda-npp-dev-10-0 \
-	cuda-nvgraph-10-0 \
-	cuda-nvgraph-dev-10-0 \
-	cuda-nvml-dev-10-0 \
-	cuda-nvprof-10-0 \
-	cuda-nvprune-10-0 \
-	cuda-nvrtc-10-0 \
-	cuda-nvrtc-dev-10-0 \
-	cuda-nvtx-10-0 \
-	cuda-toolkit-10-0 \
-	cuda-tools-10-0 \
+       cuda-compiler-10-0 \
+       cuda-core-10-0 \
+       cuda-cublas-10-0 \
+       cuda-cublas-dev-10-0 \
+       cuda-cudart-10-0 \
+       cuda-cudart-dev-10-0 \
+       cuda-cufft-10-0 \
+       cuda-cufft-dev-10-0 \
+       cuda-cuobjdump-10-0 \
+       cuda-cupti-10-0 \
+       cuda-curand-10-0 \
+       cuda-curand-dev-10-0 \
+       cuda-cusolver-10-0 \
+       cuda-cusolver-dev-10-0 \
+       cuda-cusparse-10-0 \
+       cuda-cusparse-dev-10-0 \
+       cuda-driver-dev-10-0 \
+       cuda-gpu-library-advisor-10-0 \
+       cuda-libraries-10-0 \
+       cuda-libraries-dev-10-0 \
+       cuda-license-10-0 \
+       cuda-memcheck-10-0 \
+       cuda-minimal-build-10-0 \
+       cuda-misc-headers-10-0 \
+       cuda-npp-10-0 \
+       cuda-npp-dev-10-0 \
+       cuda-nvgraph-10-0 \
+       cuda-nvgraph-dev-10-0 \
+       cuda-nvml-dev-10-0 \
+       cuda-nvprof-10-0 \
+       cuda-nvprune-10-0 \
+       cuda-nvrtc-10-0 \
+       cuda-nvrtc-dev-10-0 \
+       cuda-nvtx-10-0 \
+       cuda-toolkit-10-0 \
+       cuda-tools-10-0 \
      && apt-get clean \
      && rm -rf /var/lib/apt/lists/*
 
@@ -93,10 +142,20 @@ RUN  apt update && \
     apt install -y libtbb-dev libtbb2 libgtk2.0-0 && apt-get clean \
      && rm -rf /var/lib/apt/lists/*
 
-RUN dpkg -i libnvinfer*.deb \
+RUN \
+     dpkg -i lib*parsers*.deb libnvinfer*.deb \
      && dpkg -i tensorrt*.deb \
-     && dpkg -i python3-*.deb libopencv*.deb \
-     && rm *.deb
+     && dpkg -i python3-*.deb OpenCV*.deb
+
+#RUN apt update \
+#    && apt install -y libgstreamer1.0-dev \
+#                      libgstreamer-plugins-base1.0-dev \
+#                      libgstreamer-plugins-bad1.0-dev \
+#                      libgstreamer-plugins-good1.0-dev \
+#                      libgstrtspserver-1.0-dev \
+#    && dpkg -i deepstream*.deb \
+#    && apt-get clean \
+#    && rm -rf /var/lib/apt/lists/*
 
 # The following addition to LD path is needed or the bazel build will break with errors due to undefined references
 # See https://github.com/tensorflow/tensorflow/issues/13243
@@ -105,7 +164,7 @@ RUN dpkg -i libnvinfer*.deb \
 RUN echo "/usr/local/cuda/targets/x86_64-linux/lib/stubs" >> /etc/ld.so.conf.d/cuda-10-0.conf && ldconfig
 
 RUN pip3 install setuptools
-RUN pip3 install wheel
+RUN pip3 install cython wheel
 RUN pip3 install numpy
 RUN pip3 install pandas
 RUN pip3 install keras_applications==1.0.8 --no-deps
